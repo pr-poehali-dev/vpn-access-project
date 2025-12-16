@@ -1,10 +1,48 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import Icon from "@/components/ui/icon";
+import { toast } from "sonner";
+import { useState } from "react";
 
 const Index = () => {
+  const [isConnected, setIsConnected] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(false);
+
   const scrollToSection = (id: string) => {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const handleVPNConnect = () => {
+    setIsConnecting(true);
+    
+    toast.loading("Подключение к VPN...", {
+      duration: 2000,
+    });
+
+    setTimeout(() => {
+      setIsConnecting(false);
+      setIsConnected(true);
+      
+      toast.success("🎉 VPN подключен!", {
+        description: "Вы защищены. Теперь доступны все заблокированные сайты.",
+        duration: 5000,
+      });
+
+      setTimeout(() => {
+        toast.info("⚡ Высокая скорость", {
+          description: "Скорость соединения: 487 Мбит/с",
+          duration: 3000,
+        });
+      }, 2000);
+    }, 2000);
+  };
+
+  const handleVPNDisconnect = () => {
+    setIsConnected(false);
+    toast.info("VPN отключен", {
+      description: "Вы вернулись к обычному соединению",
+      duration: 3000,
+    });
   };
 
   return (
@@ -26,8 +64,12 @@ const Index = () => {
               </button>
             ))}
           </div>
-          <Button className="bg-primary hover:bg-primary/90">
-            Попробовать
+          <Button 
+            onClick={isConnected ? handleVPNDisconnect : handleVPNConnect}
+            disabled={isConnecting}
+            className={isConnected ? "bg-green-600 hover:bg-green-700" : "bg-primary hover:bg-primary/90"}
+          >
+            {isConnecting ? "Подключение..." : isConnected ? "✓ Подключено" : "Попробовать"}
           </Button>
         </div>
       </nav>
@@ -44,9 +86,18 @@ const Index = () => {
           </div>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16 animate-slide-up">
-            <Button size="lg" className="bg-primary hover:bg-primary/90 text-lg px-8 py-6">
+            <Button 
+              size="lg" 
+              onClick={handleVPNConnect}
+              disabled={isConnecting || isConnected}
+              className={`text-lg px-8 py-6 ${
+                isConnected 
+                  ? "bg-green-600 hover:bg-green-700" 
+                  : "bg-primary hover:bg-primary/90"
+              }`}
+            >
               <Icon name="Zap" className="mr-2" size={24} />
-              Подключиться сейчас
+              {isConnecting ? "Подключение..." : isConnected ? "✓ VPN Активен" : "Подключиться сейчас"}
             </Button>
             <Button size="lg" variant="outline" className="text-lg px-8 py-6 border-primary/30">
               <Icon name="Play" className="mr-2" size={24} />
@@ -163,17 +214,31 @@ const Index = () => {
       <section id="pricing" className="py-20 px-4 bg-muted/30">
         <div className="container mx-auto">
           <h2 className="text-4xl md:text-5xl font-bold text-center mb-4">Выберите свой план</h2>
-          <p className="text-center text-muted-foreground mb-16 max-w-2xl mx-auto">
+          <p className="text-center text-muted-foreground mb-4 max-w-2xl mx-auto">
             30 дней гарантии возврата денег
           </p>
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 bg-accent/20 border border-accent/50 rounded-full px-6 py-3">
+              <Icon name="Gift" className="text-accent" size={24} />
+              <span className="text-accent font-bold text-lg">Первые 36 дней бесплатно для всех!</span>
+            </div>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {[
               {
+                name: "Пробный",
+                price: "₽0",
+                period: "/36 дней",
+                features: ["Безлимитный трафик", "50+ стран", "До 5 устройств", "24/7 поддержка", "Без привязки карты"],
+                popular: true,
+                isTrial: true
+              },
+              {
                 name: "Месяц",
                 price: "₽590",
                 period: "/месяц",
-                features: ["Безлимитный трафик", "50+ стран", "До 5 устройств", "24/7 поддержка"],
+                features: ["Всё из пробного", "Приоритетная поддержка", "Без ограничений"],
                 popular: false
               },
               {
@@ -182,16 +247,7 @@ const Index = () => {
                 period: "/месяц",
                 originalPrice: "₽590",
                 discount: "50% скидка",
-                features: ["Всё из месячного", "Приоритетная поддержка", "Бесплатные обновления", "Bonus: 3 месяца в подарок"],
-                popular: true
-              },
-              {
-                name: "2 года",
-                price: "₽190",
-                period: "/месяц",
-                originalPrice: "₽590",
-                discount: "67% скидка",
-                features: ["Всё из годового", "VIP поддержка", "Эксклюзивные серверы", "Bonus: 6 месяцев в подарок"],
+                features: ["Всё из месячного", "VIP поддержка", "Бесплатные обновления", "Bonus: 3 месяца в подарок"],
                 popular: false
               }
             ].map((plan, i) => (
@@ -201,7 +257,7 @@ const Index = () => {
               >
                 {plan.popular && (
                   <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-primary to-secondary px-6 py-1 rounded-full text-sm font-bold">
-                    Лучшее предложение
+                    {plan.isTrial ? "🎁 36 дней бесплатно" : "Лучшее предложение"}
                   </div>
                 )}
                 <CardContent className="p-8">
